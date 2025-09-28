@@ -38,7 +38,7 @@ class EmailClassifier:
         
         return {
             "category": category,
-            "confidence": confidence
+            "confidence": float(confidence)  # Converter para float Python
         }
 
 

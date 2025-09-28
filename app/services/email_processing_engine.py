@@ -1,34 +1,47 @@
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 import os
 from app.services.ai_response_generator import AIResponseGenerator
+from app.services.email_history_service import EmailHistoryService
 from app.utils.read_pdf import read_pdf
 from app.utils.read_txt import read_txt
 from app.utils.preprocessor_npl import preprocess
+from sqlalchemy.orm import Session
+
 
 class EmailProcessingEngine:
-    def __init__(self):
+    def __init__(self, db: Optional[Session] = None):
         self.response_generator = AIResponseGenerator()
+        self.db = db
         
     def process_email(self, input_data: str, input_type: str = "text") -> Dict[str, Any]:
         try:
-            # Ler conteúdo
-            raw_content = self._read_content(input_data, input_type)
+            # 1. Ler o arquivo
+            content = self._read_content(input_data, input_type)
             
-            # Pré-processar texto
-            processed_text = preprocess(raw_content)
+            # 2. Processar texto
+            processed = preprocess(content)
             
-            # Gerar resposta (inclui classificação)
-            response_result = self.response_generator.generate_response(raw_content)
+            # 3. Gerar resposta
+            response = self.response_generator.generate_response(processed)
             
-            return {
+            # 4. Montar resultado
+            result = {
                 "status": "success",
-                "raw_content": raw_content,
-                "processed_content": processed_text,
-                "category": response_result["category"],
-                "confidence": response_result["confidence"],
-                "email_type": response_result["email_type"],
-                "suggested_response": response_result["suggested_response"]
+                "raw_content": content,
+                "processed_content": processed,
+                "category": response["category"],
+                "confidence": float(response["confidence"]),  # Converter para float Python
+                "email_type": response["email_type"],
+                "suggested_response": response["suggested_response"],
+                "input_type": input_type
             }
+            
+            if self.db:
+                history_service = EmailHistoryService(self.db)
+                saved = history_service.save_email(result)
+                result["saved_id"] = saved.id
+            
+            return result
             
         except Exception as e:
             return {
