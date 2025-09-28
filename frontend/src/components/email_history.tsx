@@ -110,7 +110,7 @@ const EmailHistory = ({ onBack }: EmailHistoryProps) => {
         <Alert severity="error">{error}</Alert>
       ) : emails.length === 0 ? (
         <Typography variant="body1" sx={{ textAlign: 'center' }}>
-          Nenhum email processado encontrado.
+          Nenhum email processado encontrado no momento.
         </Typography>
       ) : (
         <>
