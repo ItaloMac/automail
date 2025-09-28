@@ -1,0 +1,42 @@
+from sqlalchemy.orm import Session
+from app.models.email_history import EmailHistory
+from datetime import datetime
+
+class EmailHistoryService:
+    def __init__(self, db: Session):
+        self.db = db
+    
+    def save_email(self, email_data):
+        text_preview = email_data["raw_content"][:200] if email_data.get("raw_content") else ""
+        response_preview = email_data["suggested_response"][:200] if email_data.get("suggested_response") else ""
+        
+        new_email = EmailHistory(
+            text_preview=text_preview,
+            category=email_data.get("category", "unknown"),
+            ai_confidence=email_data.get("confidence", 0.0),
+            response_preview=response_preview,
+            email_type=email_data.get("input_type", "text"),
+            analyzed_at=datetime.now()
+        )
+        
+        self.db.add(new_email)
+        self.db.commit()
+        self.db.refresh(new_email)
+        
+        return new_email
+    
+    def get_all_emails(self):
+        # Buscar todos os emails no banco de dados
+        return self.db.query(EmailHistory).all()
+    
+    def get_emails_by_category(self, category: str):
+        # Buscar emails por categoria
+        return self.db.query(EmailHistory).filter(EmailHistory.category == category).all()
+    
+    def count_emails(self):
+        # Contar emails por categoria
+        return {
+            "total": self.db.query(EmailHistory).count(),
+            "produtivo": self.db.query(EmailHistory).filter(EmailHistory.category == "Produtivo").count(),
+            "improdutivo": self.db.query(EmailHistory).filter(EmailHistory.category == "Improdutivo").count(),
+        }
