@@ -2,9 +2,9 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Evitar downloads automáticos de transformers e datasets
-ENV TRANSFORMERS_OFFLINE=1
-ENV HF_DATASETS_OFFLINE=1
+# Evitar downloads automáticos durante runtime, exceto quando necessário
+ENV TRANSFORMERS_OFFLINE=0
+ENV HF_DATASETS_OFFLINE=0
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -27,10 +27,8 @@ RUN pip install --no-cache-dir \
 # Instala restante das dependências
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Pré-baixa modelos necessários
-# Install spaCy Portuguese model
+# Instala spaCy PT
 RUN pip install https://github.com/explosion/spacy-models/releases/download/pt_core_news_sm-3.7.0/pt_core_news_sm-3.7.0-py3-none-any.whl
-RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')"
 
 # Copia o restante da aplicação
 COPY . .
