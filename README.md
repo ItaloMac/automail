@@ -2,6 +2,8 @@
 
 O **AutoMail** é um sistema completo para análise automática de emails, que classifica mensagens como **Produtivas** ou **Improdutivas** e gera respostas inteligentes utilizando IA. Ele suporta múltiplos formatos de entrada, como texto, PDF e arquivos TXT, e armazena o histórico de análises em um banco de dados PostgreSQL.
 
+[Acesse a aplicação aqui](https://automail-umber.vercel.app/)
+
 ---
 
 ## 🚀 Tecnologias Utilizadas
