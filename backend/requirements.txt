@@ -17,7 +17,10 @@ annotated-types==0.6.0
 
 # === AI/ML NECESSÁRIO ===
 numpy>=1.24.0,<1.25.0
-sentence-transformers>=2.2.0,<2.3.0
+scikit-learn>=1.3.0,<1.4.0
+sentence-transformers>=2.2.0,<2.3.0  # inclui transformers como dependência interna
+torch==2.1.0  # CPU-only já instalado via Dockerfile
+
 
 # === SPACY (somente o necessário) ===
 spacy>=3.6.0,<3.8.0
