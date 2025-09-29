@@ -4,22 +4,20 @@ from app.services.email_classifier import EmailClassifier
 
 
 class AIResponseGenerator:
-     _instance = None
+    _instance = None  # Singleton
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
-            cls._instance = super().__new__(cls)
+            cls._instance = super(AIResponseGenerator, cls).__new__(cls)
         return cls._instance
-    
-    def __init__(self):
-       if hasattr(self, "email_classifier"):
-            return  # evita recriação
 
-        # Reutiliza classifier já otimizado
-        from app.services.email_classifier import EmailClassifier
+    def __init__(self):
+        if hasattr(self, "_initialized") and self._initialized:
+            return
+        self._initialized = True
+
         self.email_classifier = EmailClassifier()
 
-        
         # Templates de resposta por categoria e tipo
         self.response_templates = {
             "Produtivo": {
@@ -69,11 +67,10 @@ class AIResponseGenerator:
             classification = self.email_classifier.classify(email_text)
             category = classification["category"]
             confidence = classification["confidence"]
-            
+
             email_type = self._identify_email_type(email_text.lower(), category)
-            
             selected_response = self._select_template(category, email_type)
-            
+
             return {
                 "suggested_response": selected_response,
                 "category": category,
@@ -81,7 +78,7 @@ class AIResponseGenerator:
                 "email_type": email_type,
                 "status": "success"
             }
-            
+
         except Exception as e:
             return {
                 "suggested_response": self._get_fallback_response(),
@@ -93,7 +90,6 @@ class AIResponseGenerator:
             }
 
     def _identify_email_type(self, email_text: str, category: str) -> str:
-        """Identifica tipo do email por palavras-chave"""
         if category == "Produtivo":
             keywords = {
                 "senha": ["senha", "password", "login", "acesso", "entrar", "redefinir"],
@@ -102,29 +98,23 @@ class AIResponseGenerator:
                 "financeiro": ["financeiro", "pagamento", "fatura", "cobrança", "valor", "preço", "boleto"],
                 "treinamento": ["treinamento", "capacitação", "aprender", "tutorial", "ensinar", "adaptar", "funcionalidade"]
             }
-            
             for email_type, words in keywords.items():
                 if any(word in email_text for word in words):
                     return email_type
-                    
         elif category == "Improdutivo":
             felicitacao_words = ["feliz", "natal", "ano novo", "parabéns", "aniversário", "prospero", "festas"]
             if any(word in email_text for word in felicitacao_words):
                 return "felicitacoes"
-            else:
-                return "pessoal"
-        
+            return "pessoal"
         return "generico"
 
     def _select_template(self, category: str, email_type: str) -> str:
         if category in self.response_templates:
             category_templates = self.response_templates[category]
-            
             if email_type in category_templates:
                 return random.choice(category_templates[email_type])
             elif "generico" in category_templates:
                 return random.choice(category_templates["generico"])
-        
         return self._get_fallback_response(category)
 
     def _get_fallback_response(self, category: str = None) -> str:
@@ -134,29 +124,3 @@ class AIResponseGenerator:
             return "Obrigado pela mensagem! Desejo tudo de bom."
         else:
             return "Obrigado pelo contato."
-
-
-# Exemplo de uso
-if __name__ == "__main__":
-    from email_classifier import EmailClassifier
-    
-    # Teste direto do gerador (sem usar o engine)
-    classifier = EmailClassifier()
-    generator = AIResponseGenerator()
-    
-    exemplos_teste = [
-        "Preciso de ajuda para acessar minha conta",
-        "Ano novo prospero para todos da equipe, estaremos juntos no proximo ano",
-        "Preciso de uma resposta rapida para o meu problema, meu numero de protocolo é 12345",
-        "Não estou conseguindo redefinir a minha senha no portal",
-        "Preciso de um treinamento para usar a nova funcionalidade",
-        "Meu financeiro no sistema esta errado, nao consigo gerar pagamento."
-    ]
-    
-    for texto in exemplos_teste:
-        resultado = generator.generate_response(texto)
-        print(f"\nTexto: {texto}")
-        print(f"Categoria: {resultado['category']} (confiança: {resultado['confidence']:.3f})")
-        print(f"Tipo: {resultado['email_type']}")
-        print(f"Resposta: {resultado['suggested_response']}")
-        print("-" * 80)
