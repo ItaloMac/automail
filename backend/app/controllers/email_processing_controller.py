@@ -8,6 +8,16 @@ from sqlalchemy.orm import Session
 
 router = APIRouter()
 
+# Criar engine única na inicialização do módulo
+# Evita criar um novo EmailProcessingEngine para cada requisição
+global_engine: Optional[EmailProcessingEngine] = None
+
+def get_engine(db: Session) -> EmailProcessingEngine:
+    global global_engine
+    if global_engine is None:
+        global_engine = EmailProcessingEngine(db)
+    return global_engine
+
 
 @router.post("/process-text")
 async def process_text_email(
@@ -15,7 +25,7 @@ async def process_text_email(
     db: Session = Depends(get_db)
 ):
     try:
-        engine = EmailProcessingEngine(db)
+        engine = get_engine(db)
         result = engine.process_email(email_text, "text")
         return result
     except Exception as e:
@@ -37,7 +47,7 @@ async def process_pdf_email(
         temp_file.write(content)
         temp_file.close()
         
-        engine = EmailProcessingEngine(db)
+        engine = get_engine(db)
         result = engine.process_email(temp_file.name, "pdf")
         
         os.unlink(temp_file.name)
@@ -62,7 +72,7 @@ async def process_txt_email(
         temp_file.write(content.decode('utf-8'))
         temp_file.close()
         
-        engine = EmailProcessingEngine(db)
+        engine = get_engine(db)
         result = engine.process_email(temp_file.name, "txt")
         
         os.unlink(temp_file.name)

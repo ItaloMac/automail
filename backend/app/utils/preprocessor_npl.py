@@ -1,18 +1,12 @@
 import spacy
 import string
 
-nlp = spacy.load("pt_core_news_sm")
+# Carrega spaCy uma vez, desativa componentes que não usa para acelerar
+nlp = spacy.load("pt_core_news_sm", disable=["ner", "parser"])
 
 def preprocess(text: str) -> str:
     doc = nlp(text.lower())
-
-    tokens = []
-    for token in doc:
-        # Verifica se o token não é uma stopword
-        if not token.is_stop:
-            # Verifica se o token não é pontuação
-            if token.text not in string.punctuation:
-                # Usa a forma lematizada
-                tokens.append(token.lemma_)
-    
-    return " ".join(tokens)
+    return " ".join(
+        token.lemma_ for token in doc
+        if not token.is_stop and not token.is_punct
+    )

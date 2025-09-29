@@ -4,8 +4,21 @@ from app.services.email_classifier import EmailClassifier
 
 
 class AIResponseGenerator:
+     _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+    
     def __init__(self):
+       if hasattr(self, "email_classifier"):
+            return  # evita recriação
+
+        # Reutiliza classifier já otimizado
+        from app.services.email_classifier import EmailClassifier
         self.email_classifier = EmailClassifier()
+
         
         # Templates de resposta por categoria e tipo
         self.response_templates = {
