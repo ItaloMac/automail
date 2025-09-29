@@ -17,7 +17,7 @@ class EmailClassifier:
         if hasattr(self, "clf"):
             return 
 
-        self.embedding_model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+        self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
 
         texts, labels = zip(*EXAMPLES)
         processed_texts = [preprocess(t) for t in texts]
