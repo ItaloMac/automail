@@ -1,19 +1,28 @@
+FROM python:3.11-slim
+
 WORKDIR /app
 
-# Copia apenas o requirements.txt primeiro
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
 COPY requirements.txt .
 
-# Instala dependências
+# Install base dependencies
 RUN pip install --no-cache-dir --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
 
-# Instala torch CPU-only (menor)
+# Install torch CPU-only version (muito menor)
 RUN pip install --no-cache-dir torch==2.1.0+cpu torchvision==0.16.0+cpu torchaudio==2.1.0+cpu --index-url https://download.pytorch.org/whl/cpu
 
-# Instala spaCy manualmente
+# Install remaining dependencies from PyPI
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Install spaCy Portuguese model
 RUN pip install https://github.com/explosion/spacy-models/releases/download/pt_core_news_sm-3.7.0/pt_core_news_sm-3.7.0-py3-none-any.whl
 
-# Copia o restante da aplicação
+# Copy application
 COPY . .
 
 EXPOSE 8000
