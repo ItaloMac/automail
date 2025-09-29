@@ -64,7 +64,7 @@ automail/
 ### Passos para Instalação e Execução
 1. **Clone o repositório**:
    ```bash
-   git clone https://github.com/seu-usuario/automail.git
+   git clone https://github.com/ItaloMac/automail.git
    cd automail
    ```
 
